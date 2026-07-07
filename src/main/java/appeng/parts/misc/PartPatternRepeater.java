@@ -246,18 +246,28 @@ public class PartPatternRepeater extends PartBasicState
                 if (pushRepeater.targetCraftingGrid != null
                         && !visitedRepeaters.contains(pushRepeater.targetCraftingGrid)
                         && pushRepeater.pushPatternToRepeater(patternDetails, table, visitedRepeaters)) {
+                    List<IAEStackType<?>> types = new ArrayList<>(AEStackTypeRegistry.getAllTypes());
                     for (IAEStack<?> outputStack : patternDetails.getCondensedAEOutputs()) {
                         waitingStacks.add(outputStack.copy());
-                        this.addInterception(outputStack.getStackType());
+                            IAEStackType<?> type = outputStack.getStackType();
+                            if (types.contains(type)) {
+                                types.remove(type);
+                                addInterception(type);
+                            }
                     }
 
                     return true;
                 }
             } else {
                 if (medium.pushPattern(patternDetails, table)) {
+                    List<IAEStackType<?>> types = new ArrayList<>(AEStackTypeRegistry.getAllTypes());
                     for (IAEStack<?> outputStack : patternDetails.getCondensedAEOutputs()) {
                         waitingStacks.add(outputStack.copy());
-                        this.addInterception(outputStack.getStackType());
+                        IAEStackType<?> type = outputStack.getStackType();
+                        if (types.contains(type)) {
+                            types.remove(type);
+                            addInterception(type);
+                        }
                     }
 
                     return true;
