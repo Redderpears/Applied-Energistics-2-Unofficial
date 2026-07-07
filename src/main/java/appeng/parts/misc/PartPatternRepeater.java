@@ -155,7 +155,7 @@ public class PartPatternRepeater extends PartBasicState
             }
 
         } else if (this.pairPatternRepeater != null) {
-            this.pairPatternRepeater.addInterception();
+            this.pairPatternRepeater.addAllInterceptions();
         }
     }
 
@@ -248,8 +248,8 @@ public class PartPatternRepeater extends PartBasicState
                         && pushRepeater.pushPatternToRepeater(patternDetails, table, visitedRepeaters)) {
                     for (IAEStack<?> outputStack : patternDetails.getCondensedAEOutputs()) {
                         waitingStacks.add(outputStack.copy());
+                        this.addInterception(outputStack.getStackType());
                     }
-                    this.addInterception();
 
                     return true;
                 }
@@ -257,8 +257,8 @@ public class PartPatternRepeater extends PartBasicState
                 if (medium.pushPattern(patternDetails, table)) {
                     for (IAEStack<?> outputStack : patternDetails.getCondensedAEOutputs()) {
                         waitingStacks.add(outputStack.copy());
+                        this.addInterception(outputStack.getStackType());
                     }
-                    this.addInterception();
 
                     return true;
                 }
@@ -419,7 +419,7 @@ public class PartPatternRepeater extends PartBasicState
         return this.waitingStacks.isEmpty();
     }
 
-    private void addInterception() {
+    private void addAllInterceptions() {
         if (waitingStacks.isEmpty() || this.targetNetworkProxy == null) return;
 
         List<IAEStackType<?>> types = new ArrayList<>(AEStackTypeRegistry.getAllTypes());
@@ -428,15 +428,19 @@ public class PartPatternRepeater extends PartBasicState
             IAEStackType<?> type = aes.getStackType();
             if (types.contains(type)) {
                 types.remove(type);
-                try {
-                    if (this.targetNetworkProxy.getStorage().getMEMonitor(type) instanceof NetworkMonitor<?>nm) {
-                        nm.addStorageInterceptor(this);
-                    }
-                } catch (GridAccessException ignored) {}
+                addInterception(type);
             }
 
             if (types.isEmpty()) break;
         }
+    }
+
+    private void addInterception(IAEStackType<?> type) {
+        try {
+            if (this.targetNetworkProxy.getStorage().getMEMonitor(type) instanceof NetworkMonitor<?>nm) {
+                nm.addStorageInterceptor(this);
+            }
+        } catch (GridAccessException ignored) {}
     }
 
     @Override
